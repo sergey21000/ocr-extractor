@@ -24,7 +24,7 @@
 ## 🏗 Стек технологий
 
 **Стек технологий**
-- [**Python](https://www.python.org/) >= 3.10 - только для отправки OCR запросов
+- [**Python**](https://www.python.org/) >= 3.10 - только для отправки OCR запросов
 - [**PaddlePaddle/PaddleOCR-VL-1.6**](https://huggingface.co/PaddlePaddle/PaddleOCR-VL-1.6) и [**PaddlePaddle/PaddleOCR-VL-1.6-GGUF**](https://huggingface.co/PaddlePaddle/PaddleOCR-VL-1.6-GGUF) - основная модель для OCR
 - [**PaddleOCR**](https://github.com/PaddlePaddle/PaddleOCR) - библиотека и модели для OCR, инференс VLM моделей
 - [**llama.cpp**](https://github.com/ggml-org/llama.cpp) - инференс VLM моделей
