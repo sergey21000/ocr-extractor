@@ -1,0 +1,18 @@
+services:
+  llm:
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    container_name: llamacpp
+    restart: unless-stopped
+    ports:
+      - ${LLAMA_ARG_PORT:-8080}:${LLAMA_ARG_PORT:-8080}
+    volumes:
+      - ${DOCKER_VOLUME_STORAGE:-../data}/huggingface/hub:/models
+      - ${DOCKER_VOLUME_STORAGE:-../data}/huggingface/hub:/root/.cache/llama.cpp/
+      - ${DOCKER_VOLUME_STORAGE:-../data}/huggingface/hub:/root/.cache/huggingface/hub
+    env_file:
+      - path: ../.env
+        required: true
+    gpus: all
+    command:
+      - --temp
+      - "0"

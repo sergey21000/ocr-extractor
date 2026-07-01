@@ -1,0 +1,7 @@
+services:
+  llm:
+    extends:
+      file: ../docker/compose.llamacpp.yml
+      service: llm
+    image: ghcr.io/ggml-org/llama.cpp:server
+    gpus: !reset null

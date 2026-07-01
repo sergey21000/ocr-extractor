@@ -1,0 +1,28 @@
+# https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.html#41-method-1-deploy-using-docker-compose-recommended
+# https://github.com/PaddlePaddle/PaddleOCR/blob/main/deploy/paddleocr_vl_docker/accelerators/nvidia-gpu/compose.yaml
+
+services:
+  paddleocr-vlm-server:
+    image: ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-${VLM_BACKEND:-vllm}-server:${VLM_IMAGE_TAG_SUFFIX}
+    container_name: paddleocr-vlm-server
+    ports:
+      - ${PADDLE_PORT:-8080}:8080
+    volumes:
+      - ../configs:/home/paddleocr/configs
+    gpus: all
+    shm_size: 64g
+    user: root
+    restart: unless-stopped
+    env_file:
+      - path: ../.env
+        required: false
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      start_period: 300s
+    command: >
+      paddleocr genai_server
+      --model_name PaddleOCR-VL-1.6-0.9B
+      --host 0.0.0.0
+      --port 8080
+      --backend ${VLM_BACKEND}
+      --backend_config /home/paddleocr/configs/${VLM_BACKEND}.yml

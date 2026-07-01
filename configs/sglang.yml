@@ -1,0 +1,30 @@
+# ==============================================================
+# SGLang server arguments:
+# https://docs.sglang.io/advanced_features/server_arguments.html
+# ==============================================================
+
+# model: facebook/opt-125m
+model-path: PaddlePaddle/PaddleOCR-VL-1.6
+served-model-name: PaddleOCR-VL-1.6-0.9B
+
+dtype: auto
+device: cuda
+trust-remote-code: true
+
+# context-length: 4096
+# disable-radix-cache: true
+# tensor-parallel-size: 1
+# mem-fraction-static: 0.7
+# max-total-tokens: none
+# chunked-prefill-size: -1
+# kv-cache-dtype: auto
+# quantization: none
+# cpu-offload-gb: 0
+
+# enable-metrics: true
+# log-requests: true
+
+# для видеокарт Blackwell на момент тестирования поддерживаются только бэкенды "triton" или "trtllm_mha"
+# https://docs.sglang.io/advanced_features/server_arguments.html#kernel-backends-attention-sampling-grammar-gemm
+# https://docs.sglang.io/advanced_features/attention_backend.html
+attention-backend: triton

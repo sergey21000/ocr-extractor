@@ -1,0 +1,40 @@
+# ==============================================================
+# vLLM Configuration file:
+# https://docs.vllm.ai/en/stable/configuration/serve_args/#configuration-file
+# vLLM CLI args:
+# https://docs.vllm.ai/en/stable/cli/serve/
+# ==============================================================
+
+# ==============================================================
+# vLLM PaddleOCR docs:
+# https://docs.vllm.ai/projects/recipes/en/latest/PaddlePaddle/PaddleOCR-VL.html#deploying-paddleocr-vl
+# https://docs.vllm.ai/projects/ascend/en/latest/tutorials/models/PaddleOCR-VL.html
+# ==============================================================
+
+# ==============================================================
+# PaddleOCR docs:
+# https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.html#331-server-side-parameter-adjustment
+# ==============================================================
+
+
+model: PaddlePaddle/PaddleOCR-VL-1.6
+served_model_name: PaddleOCR-VL-1.6-0.9B
+
+dtype: auto
+max_model_len: 2048
+max_num_batched_tokens: 1024
+gpu_memory_utilization: 0.7
+max_num_seqs: 1
+tensor_parallel_size: 1
+no_enable_prefix_caching: true
+mm_processor_cache_gb: 0
+trust_remote_code: true
+
+# enable-chunked-prefill: true
+# max_num_seqs: 1
+# enforce_eager: true
+# chat_template_content_format: string
+# disable_log_requests: true
+# language_model_only: true
+# kv_cache_memory_bytes: 2G
+# kv_cache_dtype: bfloat16

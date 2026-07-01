@@ -1,0 +1,27 @@
+# https://docs.sglang.io/docs/get-started/install#method-5-using-docker-compose
+
+services:
+  llm:
+    # image: lmsysorg/sglang:latest-runtime
+    # https://github.com/sgl-project/sglang/issues/25693
+    image: lmsysorg/sglang:v0.5.12-cu130
+    container_name: sglang
+    restart: unless-stopped
+    ports:
+      - ${SGLANG_PORT:-30000}:${SGLANG_PORT:-30000}
+    volumes:
+      - ${DOCKER_VOLUME_STORAGE:-../data}/huggingface:/root/.cache/huggingface
+      - ../configs:/sgl-workspace/configs
+    ipc: host
+    gpus: all
+    env_file:
+      - path: ../.env
+        required: false
+    entrypoint: python3 -m sglang.launch_server
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - ${SGLANG_PORT:-30000}
+      - --config
+      - /sgl-workspace/configs/sglang.yml

@@ -1,0 +1,74 @@
+# https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.html#41-method-1-deploy-using-docker-compose-recommended
+# https://github.com/PaddlePaddle/PaddleOCR/blob/main/deploy/paddleocr_vl_docker/accelerators/nvidia-gpu/compose.yaml
+
+services:
+  paddleocr-vl-api:
+    image: ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-vl:${API_IMAGE_TAG_SUFFIX}
+    container_name: paddleocr-vl-api
+    ports:
+      - ${PADDLE_PORT:-8080}:8080
+    volumes:
+      - ../example_files:/home/paddleocr/example_files
+      - ../configs:/home/paddleocr/configs
+      - ../utils:/home/paddleocr/utils
+      - ../scripts:/home/paddleocr/scripts
+      - ../ocr_input:/home/paddleocr/ocr_input
+      - ../ocr_result:/home/paddleocr/ocr_result
+    depends_on:
+      paddleocr-vlm-server:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [gpu]
+    shm_size: 64g
+    user: root
+    restart: unless-stopped
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      - VLM_BACKEND=${VLM_BACKEND:-vllm}
+      - LLM_BASE_URL=http://paddleocr-vlm-server:8080/v1
+      - PADDLEX_CONFIG=paddleocr_pipeline_${VLM_BACKEND:-vllm}.yml
+    command: >
+      /bin/bash -c
+      "paddlex --serve --pipeline /home/paddleocr/configs/$${PADDLEX_CONFIG}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+
+
+  paddleocr-vlm-server:
+    image: ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-${VLM_BACKEND:-vllm}-server:${VLM_IMAGE_TAG_SUFFIX}
+    container_name: paddleocr-vlm-server
+    volumes:
+      - ../configs:/home/paddleocr/configs
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [gpu]
+    shm_size: 64g
+    user: root
+    restart: unless-stopped
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      - BACKEND_CONFIG=${VLM_BACKEND:-vllm}.yml
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      start_period: 300s
+    command: >
+      /bin/bash -c 
+      "paddleocr genai_server
+      --model_name PaddleOCR-VL-1.6-0.9B
+      --host 0.0.0.0
+      --port 8080
+      --backend ${VLM_BACKEND}
+      --backend_config /home/paddleocr/configs/$${BACKEND_CONFIG}"

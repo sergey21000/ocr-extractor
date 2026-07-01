@@ -1,0 +1,25 @@
+# https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.html#41-method-1-deploy-using-docker-compose-recommended
+# https://github.com/PaddlePaddle/PaddleOCR/blob/main/deploy/paddleocr_vl_docker/accelerators/nvidia-gpu/compose.yaml
+
+services:
+  paddleocr-vl-api:
+    image: ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-vl:${API_IMAGE_TAG_SUFFIX}
+    container_name: paddleocr-vl
+    ports:
+      - ${PADDLE_PORT:-8080}:8080
+    volumes:
+      - ../example_files:/home/paddleocr/example_files
+      - ../configs:/home/paddleocr/configs
+      - ../utils:/home/paddleocr/utils
+      - ../scripts:/home/paddleocr/scripts
+      - ../ocr_input:/home/paddleocr/ocr_input
+      - ../ocr_result:/home/paddleocr/ocr_result
+    gpus: all
+    shm_size: 64g
+    user: root
+    restart: unless-stopped
+    env_file:
+      - path: ../.env
+        required: false
+    command: ["python", "-m", "scripts.run_paddleocrvl_wather"]
+    # command: ["sleep", "infinity"]

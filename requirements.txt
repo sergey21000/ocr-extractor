@@ -1,0 +1,5 @@
+openai
+pypdfium2
+pillow
+loguru
+tqdm

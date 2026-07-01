@@ -1,0 +1,17 @@
+services:
+  watcher:
+    image: local/ocr-watcher:latest
+    container_name: watcher
+    build:
+      context: ..
+      dockerfile: docker/watcher.Dockerfile
+    restart: unless-stopped
+    environment:
+      - LLM_BASE_URL=http://llm:8080/v1
+    volumes:
+      - ../ocr_input:/app/ocr_input
+      - ../ocr_result:/app/ocr_result
+      - ../configs:/app/configs
+    env_file:
+      - path: ../.env
+        required: false
