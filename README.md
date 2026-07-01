@@ -453,8 +453,8 @@ openai.BadRequestError: Error code: 400 - {'error': {'message': "'max_tokens' or
 ```
 
 **Решение:**  
-Параметр `max_model_len` в `configs/vllm.yml` должен быть больше чем параметр `PADDLEOCRVL_PREDICT_KWARGS['max_new_tokens']` в `configs/config.py` - например `max_model_len: 8192`
-В данном примере ошибки они установлены так - что приводит к ошибке
+Параметр `max_model_len` в `configs/vllm.yml` должен быть больше чем параметр `PADDLEOCRVL_PREDICT_KWARGS['max_new_tokens']` в `configs/config.py` - например `max_model_len: 8192`  
+В данном примере логов они установлены так - что приводит к ошибке
 ```
 # configs/vllm.yml
 max_model_len: 4096
