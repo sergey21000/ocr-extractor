@@ -414,19 +414,19 @@ https://www.paddleocr.ai/latest/en/version3.x/module_usage/layout_detection.html
 - `.env` - llama.cpp, параметры `LLAMA_ARG_CTX_SIZE`, `LLAMA_ARG_N_GPU_LAYERS`, `LLAMA_ARG_CACHE_TYPE_K/V`
 - `configs/vllm.yml` - vLLM / PaddleOCR vLLM, параметры `dtype`, `max_model_len`, `max_num_batched_tokens`, `gpu_memory_utilization`, `kv_cache_dtype`, `cpu_offload_gb`, `quantization`
 - `configs/sglang.yml` - SGLang, параметры `dtype`, `context-length`, `max-total-tokens`, `mem-fraction-static`,  `kv-cache-dtype`, `cpu_offload_gb`, `cpu-offload-gb`
-- `configs/config.py` - PaddleOCRVL, параметр `precision`
+- `configs/config.py` - PaddleOCRVL, параметр `precision` в словаре `PADDLEOCRVL_INIT_KWARGS`
 
 ---
-**Проблема:**
+**Проблема:**  
 Модель генерирует много повторяющихся слов пордряд (зацикливается)
 
-**Решения:**
+**Решения:**  
 Редактировать словарь `OPENAI_CHAT_COMPLETIONS_KWARGS` в модуле `configs/config.py`
 - установить параметр `temperature` больше 0 (при этом на [странице](https://huggingface.co/PaddlePaddle/PaddleOCR-VL-1.6-GGUF#basic-usage) модели рекомендуется ставить `temperature=0`)
-- увеличить значения параметров, связанные с `_penalty`
+- увеличить значения параметров, связанных с `_penalty`
 
 ---
-**Проблема:**
+**Проблема:**  
 Сервер llama.cpp выдает ошибку
 ```sh
 operator(): got exception: {"error":{"code":500,"message":"The model produced output that does not match the expected peg-native format","type":"server_error"}}
@@ -434,25 +434,25 @@ operator(): got exception: {"error":{"code":500,"message":"The model produced ou
 common_chat_peg_parse: unparsed peg-native output:
 ```
 
-**Решение:**
+**Решение:**  
 Редактировать словарь `OPENAI_CHAT_COMPLETIONS_KWARGS` в модуле `configs/config.py`
 - установить параметр `response_format=dict(type='text')`
 
 ---
-**Проблема:**
+**Проблема:**  
 При отправке OCR запросов скрипты выдают ошибку `Error code: 503`, даже если сервер работает на локальной машине
 
-**Решение:**
+**Решение:**  
 Отключить VPN и попробовать снова
 
 ---
-**Проблема:**
+**Проблема:**  
 При отправке OCR запроса на `docker/compose.paddleocr-client-server.yml` выдает ошибку
 ```sh
 openai.BadRequestError: Error code: 400 - {'error': {'message': "'max_tokens' or 'max_completion_tokens' is too large: 4096. This model's maximum context length is 4096 tokens and your request has 14 input tokens (4096 > 4096 - 14). None", 'type': 'BadRequestError', 'param': None, 'code': 400}}
 ```
 
-**Решение:**
+**Решение:**  
 Параметр `max_model_len` в `configs/vllm.yml` должен быть больше чем параметр `PADDLEOCRVL_PREDICT_KWARGS['max_new_tokens']` в `configs/config.py` - например `max_model_len: 8192`
 В данном примере ошибки они установлены так - что приводит к ошибке
 ```
