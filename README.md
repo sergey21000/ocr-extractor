@@ -271,7 +271,7 @@ python -m scripts.request_openai -i example_files
 ## 🚀 Запуск клиента и сервера PaddleOCR VL + PaddleOCR vLLM (пример из документации)
 
 Данный пример взят из [документации](https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.html#41-method-1-deploy-using-docker-compose-recommended) PaddleOCR - это рекомендуемый способ деплоя  
-Как использовать файлы [конфигурации](https://www.paddleocr.ai/latest/en/version3.x/paddleocr_and_paddlex.html#3-using-paddlex-pipeline-configuration-files) PaddleOCR  
+[Документация](https://www.paddleocr.ai/latest/en/version3.x/paddleocr_and_paddlex.html#3-using-paddlex-pipeline-configuration-files) как использовать файлы PaddleOCR  
 
 
 ### Запуск 
