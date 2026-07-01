@@ -262,7 +262,7 @@ vLLM Swagger доступен по адресу http://127.0.0.1:8080/docs
 Отправка OCR запроса
 ```ps1
 python -m scripts.request_openai -i example_files/image_text2.jpg
-python -m scripts.request_openai -i "example_files/CT CЭB527-77_527.pdf"
+python -m scripts.request_openai -i "example_files/ГОСТ 20420-75_изм.№3.pdf"
 python -m scripts.request_openai -i example_files
 ```
 Результаты сохраняются в директории `ocr_result`
@@ -289,7 +289,7 @@ PaddleOCR VL Swagger доступен по адресу http://127.0.0.1:8080/do
 <ins><i>Запуск OCR через Python скрипт внутри контейнера PaddleOCR VL</i></ins>  
 ```
 python -m scripts.request_paddleocrvl_api -i example_files/image_text2.jpg
-python -m scripts.request_paddleocrvl_api -i "example_files/CT CЭB527-77_527.pdf"
+python -m scripts.request_paddleocrvl_api -i "example_files/ГОСТ 20420-75_изм.№3.pdf"
 python -m scripts.request_paddleocrvl_api -i example_files
 ```
 Результаты сохраняются в директории `ocr_result`

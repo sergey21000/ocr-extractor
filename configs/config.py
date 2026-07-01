@@ -10,12 +10,8 @@ PADDLEOCRVL_INIT_KWARGS = dict(
     use_doc_orientation_classify=False,
     use_doc_unwarping=False,
     use_layout_detection=False,
-
     # fp16, fp32 (default)
     precision='fp16',
-
-    # отключить очереди чтобы запросы были одиночными
-    # use_queues=False,
 )
 
 # исходники метода predict класса PaddleOCRVL:

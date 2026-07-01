@@ -10,25 +10,23 @@
 import os
 import base64
 from pathlib import Path
+from io import BytesIO
 
 import requests
+import pypdfium2 as pdfium
+from PIL import Image
 from paddleocr import PaddleOCRVL
 
 from utils.logger import logger
+from utils.base import OcrBaseUtils
 from configs.config import (
     PADDLEOCRVL_INIT_KWARGS,
-    SUPPORTED_IMAGE_EXTENSIONS,
-    SUPPORTED_PDF_EXTENSIONS,
     OCR_RESULT_DIR,
 )
 
 
-class OcrUtilsPaddle:
+class OcrUtilsPaddle(OcrBaseUtils):
     """Утилиты для отправки запросов через OpenAI"""
-    IMAGE_EXTENSIONS = SUPPORTED_IMAGE_EXTENSIONS
-    PDF_EXTENSIONS = SUPPORTED_PDF_EXTENSIONS
-    SUPPORTED_EXTENSIONS = IMAGE_EXTENSIONS + PDF_EXTENSIONS
-
     @staticmethod
     def get_paddleocrvl_pipepline(vl_rec_backend: str | None = None) -> PaddleOCRVL:
         """
@@ -85,8 +83,8 @@ class OcrUtilsPaddle:
             # res.save_to_xlsx(save_path=ocr_result_dir)
             # res.save_to_word(save_path=ocr_result_dir)
 
-    @staticmethod
-    def paddleocrvl_request(input_file: str | Path, llm_base_url: str) -> None:
+    @classmethod
+    def paddleocrvl_request(cls, input_file: str | Path, llm_base_url: str) -> None:
         """"
         Отправка HTTP API запроса на сервер контейнера образа PaddleOCR-VL 
         Взято из документации:
@@ -95,7 +93,7 @@ class OcrUtilsPaddle:
         import importlib
         import configs.config
         importlib.reload(configs.config)
-        from configs.config import PADDLEOCRVL_PREDICT_KWARGS
+        from configs.config import PADDLEOCRVL_PREDICT_KWARGS, OCR_MAX_IMAGE_DIMENSION
 
         def clean(d: dict) -> dict:
             return {k: v for k, v in d.items() if v is not None}
@@ -125,10 +123,27 @@ class OcrUtilsPaddle:
         extra_kwargs = PADDLEOCRVL_PREDICT_KWARGS
         ocr_result_dir = Path(OCR_RESULT_DIR) / Path(input_file).stem
         ocr_result_dir.mkdir(exist_ok=True, parents=True)
-        with open(input_file, 'rb') as f:
-            image_base64 = base64.b64encode(f.read()).decode('ascii')
-        # тип файла: 1 - картинка, 0 - PDF
-        file_type = 0 if Path(input_file).suffix == '.pdf' else 1
+
+        # готовим содержимое файла с учётом ресайза
+        input_file = Path(input_file)
+        if input_file.suffix.lower() == '.pdf':
+            with pdfium.PdfDocument(input_file, password=None) as src_pdf:
+                pil_images = [
+                    page.render(scale=1, rev_byteorder=True).to_pil()
+                    for page in src_pdf
+                ]
+            file_bytes = cls.build_resized_pdf(pil_images, OCR_MAX_IMAGE_DIMENSION)
+            file_type = 0
+        else:
+            pil_image = Image.open(input_file)
+            if OCR_MAX_IMAGE_DIMENSION:
+                pil_image = cls.resize_pil_image(pil_image, OCR_MAX_IMAGE_DIMENSION)
+            buf = BytesIO()
+            pil_image.convert('RGB').save(buf, format='JPEG')
+            file_bytes = buf.getvalue()
+            file_type = 1
+
+        image_base64 = base64.b64encode(file_bytes).decode('ascii')
 
         # 1) layout-parsing
         layout_kwargs = clean(to_camel({
@@ -190,8 +205,8 @@ class OcrUtilsPaddle:
         response.raise_for_status()
         result = response.json()['result']
         res = result['layoutParsingResults'][0]
-        md_file = ocr_result_dir / Path(Path(input_file).name).with_suffix('.md')
-        md_file.write_text(res['markdown']['text'])
+        md_file = ocr_result_dir / Path(input_file.name).with_suffix('.md')
+        md_file.write_text(res['markdown']['text'], encoding='utf-8')
         for img_path, img in res['markdown'].get('images', {}).items():
             full_path = ocr_result_dir / img_path
             full_path.parent.mkdir(parents=True, exist_ok=True)
