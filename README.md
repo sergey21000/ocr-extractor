@@ -291,6 +291,10 @@ PaddleOCR VL Swagger доступен по адресу http://127.0.0.1:8080/do
 docker exec -it paddleocr-vl-api python -m scripts.request_paddleocrvl -i example_files/image_text2.jpg
 docker exec -it paddleocr-vl-api python -m scripts.request_paddleocrvl -i "example_files/CT CЭB527-77_527.pdf"
 docker exec -it paddleocr-vl-api python -m scripts.request_paddleocrvl -i example_files
+
+python -m scripts.request_paddleocrvl_api -i example_files/image_text2.jpg
+python -m scripts.request_paddleocrvl_api -i "example_files/CT CЭB527-77_527.pdf"
+python -m scripts.request_paddleocrvl_api -i example_files
 ```
 Результаты сохраняются в директории `ocr_result`
 
@@ -319,6 +323,8 @@ docker exec -it paddleocr-vl-api paddleocr doc_parser `
 --max_new_tokens 1024
 ```
 Результаты сохраняются в директории `ocr_result`  
+Исходные файлы должны находиться в директории `example_files`, поскольку команда запускается из контейнера
+
 
 ### Описание параметров
 
