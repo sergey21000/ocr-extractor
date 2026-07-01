@@ -266,6 +266,7 @@ python -m scripts.request_openai -i "example_files/ГОСТ 20420-75_изм.№3
 python -m scripts.request_openai -i example_files
 ```
 Результаты сохраняются в директории `ocr_result`
+В параметр `-i` передается или путь до изображения / PDF, или путь до папки
 
 
 ## 🚀 Запуск клиента и сервера PaddleOCR VL + PaddleOCR vLLM (пример из документации)
@@ -292,7 +293,8 @@ python -m scripts.request_paddleocrvl_api -i example_files/image_text2.jpg
 python -m scripts.request_paddleocrvl_api -i "example_files/ГОСТ 20420-75_изм.№3.pdf"
 python -m scripts.request_paddleocrvl_api -i example_files
 ```
-Результаты сохраняются в директории `ocr_result`
+Результаты сохраняются в директории `ocr_result`  
+В параметр `-i` передается или путь до изображения / PDF, или путь до папки
 
 <ins><i>Запуск OCR через команду терминала `paddleocr-vl doc_parser` внутри контейнера PaddleOCR VL</i></ins>  
 
