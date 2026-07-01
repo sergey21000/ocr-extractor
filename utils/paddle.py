@@ -85,64 +85,118 @@ class OcrUtilsPaddle:
             # res.save_to_xlsx(save_path=ocr_result_dir)
             # res.save_to_word(save_path=ocr_result_dir)
 
-    @staticmethod 
+    @staticmethod
     def paddleocrvl_request(input_file: str | Path, llm_base_url: str) -> None:
         """"
-        Отправка запроса на сервер контейнера образа paddleocr-vl
+        Отправка HTTP API запроса на сервер контейнера образа PaddleOCR-VL 
         Взято из документации:
         https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.html#43-client-side-invocation
         """
+        import importlib
+        import configs.config
+        importlib.reload(configs.config)
+        from configs.config import PADDLEOCRVL_PREDICT_KWARGS
+
+        def clean(d: dict) -> dict:
+            return {k: v for k, v in d.items() if v is not None}
+
+        def to_camel(d: dict) -> dict:
+            # snake_case -> camelCase
+            mapping = {
+                'use_doc_orientation_classify': 'useDocOrientationClassify',
+                'use_doc_unwarping': 'useDocUnwarping',
+                'use_layout_detection': 'useLayoutDetection',
+                'use_chart_recognition': 'useChartRecognition',
+                'use_seal_recognition': 'useSealRecognition',
+                'repetition_penalty': 'repetitionPenalty',
+                'top_p': 'topP',
+                'max_new_tokens': 'maxNewTokens',
+                'min_pixels': 'minPixels',
+                'max_pixels': 'maxPixels',
+                'layout_nms': 'layoutNms',
+                'layout_unclip_ratio': 'layoutUnclipRatio',
+                'layout_merge_bboxes_mode': 'layoutMergeBboxesMode',
+                'format_block_content': 'formatBlockContent',
+                'merge_layout_blocks': 'mergeLayoutBlocks',
+                'markdown_ignore_labels': 'markdownIgnoreLabels',
+            }
+            return {mapping.get(k, k): v for k, v in d.items()}
+
+        extra_kwargs = PADDLEOCRVL_PREDICT_KWARGS
         ocr_result_dir = Path(OCR_RESULT_DIR) / Path(input_file).stem
         ocr_result_dir.mkdir(exist_ok=True, parents=True)
-        with open(input_file, 'rb') as file:
-            image_bytes = file.read()
-            image_base64 = base64.b64encode(image_bytes).decode('ascii')
+        with open(input_file, 'rb') as f:
+            image_base64 = base64.b64encode(f.read()).decode('ascii')
         # тип файла: 1 - картинка, 0 - PDF
         file_type = 0 if Path(input_file).suffix == '.pdf' else 1
+
+        # 1) layout-parsing
+        layout_kwargs = clean(to_camel({
+            k: extra_kwargs.get(k)
+            for k in [
+                'use_doc_orientation_classify',
+                'use_doc_unwarping',
+                'use_layout_detection',
+                'layout_nms',
+                'layout_unclip_ratio',
+                'layout_merge_bboxes_mode',
+                'format_block_content',
+                'temperature',
+                'top_p',
+                'repetition_penalty',
+                'max_new_tokens',
+            ]
+        }))
         payload = {
             'file': image_base64,
             'fileType': file_type,
+            **layout_kwargs,
         }
-        # этап 1 - предобработка
-        response = requests.post(llm_base_url + '/layout-parsing', json=payload)
+        response = requests.post(
+            f'{llm_base_url}/layout-parsing',
+            json=payload
+        )
         response.raise_for_status()
         result = response.json()['result']
         pages = []
         for i, res in enumerate(result['layoutParsingResults']):
-            pages.append({'prunedResult': res['prunedResult'], 'markdownImages': res['markdown'].get('images')})
-            for img_name, img in res["outputImages"].items():
+            pages.append({
+                'prunedResult': res['prunedResult'],
+                'markdownImages': res['markdown'].get('images'),
+            })
+            for img_name, img in res.get('outputImages', {}).items():
                 img_path = ocr_result_dir / f'{img_name}_{i}.jpg'
-                Path(img_path).parent.mkdir(exist_ok=True)
-                with open(img_path, 'wb') as f:
-                    f.write(base64.b64decode(img))
+                img_path.parent.mkdir(parents=True, exist_ok=True)
+                img_path.write_bytes(base64.b64decode(img))
         logger.info(f'Изображения с аннотациями сохранены в {ocr_result_dir}')
-        # этап 2 - OCR
+
+        # 2) restructure-pages
+        vlm_kwargs = clean(to_camel({
+            k: extra_kwargs.get(k)
+            for k in [
+                'merge_layout_blocks',
+                'markdown_ignore_labels',
+            ]
+        }))
         payload = {
             'pages': pages,
             'concatenatePages': True,
+            **vlm_kwargs,
         }
-        response = requests.post(llm_base_url + '/restructure-pages', json=payload)
+        response = requests.post(
+            f'{llm_base_url}/restructure-pages',
+            json=payload
+        )
         response.raise_for_status()
         result = response.json()['result']
         res = result['layoutParsingResults'][0]
-        md_dir = ocr_result_dir / 'markdown'
-        md_dir.mkdir(exist_ok=True)
-        md_file = md_dir / 'doc.md'
+        md_file = ocr_result_dir / Path(Path(input_file).name).with_suffix('.md')
         md_file.write_text(res['markdown']['text'])
-        for img_path, img in res['markdown']['images'].items():
-            img_path = md_dir / img_path
-            img_path.parent.mkdir(parents=True, exist_ok=True)
-            img_path.write_bytes(base64.b64decode(img))
-        logger.info(f'Markdown документы сохранены в {md_file}')
-
-    @staticmethod
-    def clear_path(path: str | Path) -> None:
-        path = Path(path)
-        if path.is_dir():
-            for file in path.iterdir():
-                file.unlink(missing_ok=True)
-        else:
-            path.unlink(missing_ok=True)
+        for img_path, img in res['markdown'].get('images', {}).items():
+            full_path = ocr_result_dir / img_path
+            full_path.parent.mkdir(parents=True, exist_ok=True)
+            full_path.write_bytes(base64.b64decode(img))
+        logger.info(f'Markdown документы сохранены в {ocr_result_dir}')
 
     @staticmethod
     def print_paddleocr_lib_info() -> None:

@@ -288,10 +288,6 @@ PaddleOCR VL Swagger доступен по адресу http://127.0.0.1:8080/do
 
 <ins><i>Запуск OCR через Python скрипт внутри контейнера PaddleOCR VL</i></ins>  
 ```
-docker exec -it paddleocr-vl-api python -m scripts.request_paddleocrvl -i example_files/image_text2.jpg
-docker exec -it paddleocr-vl-api python -m scripts.request_paddleocrvl -i "example_files/CT CЭB527-77_527.pdf"
-docker exec -it paddleocr-vl-api python -m scripts.request_paddleocrvl -i example_files
-
 python -m scripts.request_paddleocrvl_api -i example_files/image_text2.jpg
 python -m scripts.request_paddleocrvl_api -i "example_files/CT CЭB527-77_527.pdf"
 python -m scripts.request_paddleocrvl_api -i example_files
