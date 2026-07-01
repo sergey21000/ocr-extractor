@@ -136,7 +136,7 @@ cd ocr-extractor
 
 **2) Копирование файла `.env` с переменными окружения**
 ```ps1
-cp .env.example .env
+cp .example.env .env
 ```
 
 **3) Установка пути до файла .env**
